@@ -7,7 +7,6 @@ namespace Flowstore\Lookup\Tests\Feature;
 use Flowstore\Lookup\Contracts\IntegrationContextResolver;
 use Flowstore\Lookup\DTO\IntegrationContext;
 use Flowstore\Lookup\Http\Controllers\LookupController;
-use Flowstore\Lookup\Http\Requests\IntegrationLookupRequest;
 use Flowstore\Lookup\Resolvers\EntityMapperResolver;
 use Flowstore\Lookup\Resolvers\LookupProviderResolver;
 use Flowstore\Lookup\Services\LookupService;

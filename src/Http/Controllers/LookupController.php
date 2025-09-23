@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Flowstore\Lookup\Http\Controllers;
 
-use Flowstore\Lookup\Http\Requests\IntegrationLookupRequest;
 use Flowstore\Lookup\Services\LookupService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 final class LookupController
 {
 	public function __construct(private readonly LookupService $service) {}
 
-	public function __invoke(IntegrationLookupRequest $request): JsonResponse
+	public function __invoke(Request $request): JsonResponse
 	{
 		$integrationIdInput = $request->input('integration_id');
 		$entityInput = $request->input('entity');

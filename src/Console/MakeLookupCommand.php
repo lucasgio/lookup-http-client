@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace Flowstore\Lookup\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
 
 final class MakeLookupCommand extends Command
 {
 	protected $signature = 'make:lookup {channel} {entity} {--provider}';
 	protected $description = 'Scaffold a Lookup Provider and/or Entity Mapper in the host app';
 
-	public function handle(Filesystem $files): int
+	public function handle(): int
 	{
 		$channelArg = $this->argument('channel');
 		$entityArg = $this->argument('entity');
@@ -24,27 +23,29 @@ final class MakeLookupCommand extends Command
 		}
 		$channel = ucfirst($channelArg);
 		$entity = ucfirst($entityArg);
-
-		$providerOption = $this->option('provider');
-		$makeProvider = ($providerOption === true);
+		$makeProvider = ($this->option('provider') === true);
 
 		$base = app_path('Lookup');
 		$providersDir = $base . DIRECTORY_SEPARATOR . 'Providers';
 		$mappersDir = $base . DIRECTORY_SEPARATOR . 'Mappers' . DIRECTORY_SEPARATOR . $channel;
 
 		if ($makeProvider) {
-			$files->ensureDirectoryExists($providersDir);
+			if (!is_dir($providersDir)) {
+				mkdir($providersDir, 0775, true);
+			}
 			$providerClass = $providersDir . DIRECTORY_SEPARATOR . $channel . 'LookupProvider.php';
-			if (!$files->exists($providerClass)) {
-				$files->put($providerClass, $this->providerStub($channel));
+			if (!file_exists($providerClass)) {
+				file_put_contents($providerClass, $this->providerStub($channel));
 				$this->info("Provider created: {$providerClass}");
 			}
 		}
 
-		$files->ensureDirectoryExists($mappersDir);
+		if (!is_dir($mappersDir)) {
+			mkdir($mappersDir, 0775, true);
+		}
 		$mapperClass = $mappersDir . DIRECTORY_SEPARATOR . $entity . 'Mapper.php';
-		if (!$files->exists($mapperClass)) {
-			$files->put($mapperClass, $this->mapperStub($channel, $entity));
+		if (!file_exists($mapperClass)) {
+			file_put_contents($mapperClass, $this->mapperStub($channel, $entity));
 			$this->info("Mapper created: {$mapperClass}");
 		}
 
@@ -81,9 +82,7 @@ final class {Channel}LookupProvider extends AbstractLookupProvider
 	}
 }
 PHP;
-		return strtr($stub, [
-			'{Channel}' => $channel,
-		]);
+		return strtr($stub, ['{Channel}' => $channel]);
 	}
 
 	private function mapperStub(string $channel, string $entity): string
