@@ -15,6 +15,6 @@ jobs:
       run: |
         curl -s -X POST \
           -H 'Content-Type: application/json' \
-          -d '{"repository":{"url":"https://github.com/flowstore/lookup"}}' \
+          -d '{"repository":{"url":"https://github.com/${{ github.repository }}"}}' \
           "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}"
 
