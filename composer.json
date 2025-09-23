@@ -1,0 +1,70 @@
+{
+  "name": "flowstore/lookup",
+  "description": "Agnostic lookup layer for external channels (ecommerce/ERP/marketplace) mapping to domain DTOs.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "integration",
+    "lookup",
+    "provider",
+    "mapper",
+    "ecommerce",
+    "erp",
+    "marketplace"
+  ],
+  "homepage": "https://github.com/flowstore/lookup",
+  "support": {
+    "issues": "https://github.com/flowstore/lookup/issues",
+    "source": "https://github.com/flowstore/lookup"
+  },
+  "authors": [
+    {
+      "name": "Flowstore",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "illuminate/support": "^10.0|^11.0",
+    "illuminate/http": "^10.0|^11.0",
+    "illuminate/console": "^10.0|^11.0",
+    "illuminate/contracts": "^10.0|^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Flowstore\\Lookup\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Flowstore\\Lookup\\Tests\\": "tests/",
+      "App\\": "tests/Fixtures/App/"
+    }
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0",
+    "phpunit/phpunit": "^10.2|^11.0",
+    "mockery/mockery": "^1.6",
+    "nunomaduro/collision": "^7.0|^8.0",
+    "phpstan/phpstan": "^1.11"
+  },
+  "scripts": {
+    "test": "phpunit --colors=always",
+    "stan": "phpstan analyse --no-progress",
+    "ci": "XDEBUG_MODE=off phpunit --testdox --colors=always && phpstan analyse --no-progress"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Flowstore\\Lookup\\LookupServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
+
