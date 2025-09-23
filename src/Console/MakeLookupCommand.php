@@ -63,7 +63,6 @@ final class MakeLookupCommand extends Command
 <?php
 
 
-declare(strict_types=1);
 
 namespace App\Lookup\Providers;
 
@@ -97,7 +96,6 @@ PHP;
 <?php
 
 
-declare(strict_types=1);
 
 namespace App\Lookup\Mappers\{Channel};
 
