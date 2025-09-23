@@ -11,6 +11,7 @@ final class MakeLookupCommand extends Command
 	protected $signature = 'make:lookup {channel} {entity} {--provider}';
 	protected $description = 'Scaffold a Lookup Provider and/or Entity Mapper in the host app';
 
+
 	public function handle(): int
 	{
 		$channelArg = $this->argument('channel');
@@ -21,7 +22,11 @@ final class MakeLookupCommand extends Command
 		if (!is_string($entityArg) || $entityArg === '') {
 			throw new \InvalidArgumentException('The {entity} argument must be a non-empty string.');
 		}
-		$channel = ucfirst($channelArg);
+		// Enforce PascalCase/CamelCase for channel, e.g., MercadoLibre, Shopify
+		if (!preg_match('/^[A-Z][A-Za-z0-9]*$/', $channelArg)) {
+			throw new \InvalidArgumentException('The {channel} argument must be CamelCase (e.g., MercadoLibre, Shopify).');
+		}
+		$channel = $channelArg; // already validated CamelCase
 		$entity = ucfirst($entityArg);
 		$makeProvider = ($this->option('provider') === true);
 
@@ -57,6 +62,7 @@ final class MakeLookupCommand extends Command
 		$stub = <<<'PHP'
 <?php
 
+
 declare(strict_types=1);
 
 namespace App\Lookup\Providers;
@@ -89,6 +95,7 @@ PHP;
 	{
 		$stub = <<<'PHP'
 <?php
+
 
 declare(strict_types=1);
 
