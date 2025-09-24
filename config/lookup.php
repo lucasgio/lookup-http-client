@@ -24,6 +24,14 @@ return [
 			'sleep_milliseconds' => 250,
 		],
 	],
+
+	'routes' => [
+		'enabled' => true,
+		// Default API route path for lookup POST endpoint
+		'path' => '/tenant-integrations/lookup',
+		'prefix' => null,
+		'middleware' => ['api'],
+	],
 ];
 
 

@@ -4,7 +4,7 @@
 
 ### Instalación
 
-- Requerimientos: PHP ^8.2, Laravel ^10|^11.
+- Requerimientos: PHP ^8.1+, Laravel ^9|^10|^11|^12.
 - Instala vía Composer:
 
 ```bash
@@ -40,11 +40,37 @@ Archivo `config/lookup.php`:
 - `PerformLookupAction`: invoca `provider->lookup(...)` y mapea con `mapper->map(...)`.
 - `LookupService`: resuelve contexto (si se usa `IntegrationContextResolver`) y devuelve el DTO de dominio.
 
-### Flujo típico (HTTP opcional)
+### HTTP (LookupController)
 
-1. Frontend llama al endpoint de lookup con `integration_id`, `entity` y `params`.
-2. Se resuelve el contexto (tenant + integración) para obtener `channel_key` y `credentials`.
-3. Provider hace la llamada externa; Mapper convierte a un DTO de dominio; la API responde con `data = domain`.
+- La ruta se habilita por defecto al instalar el paquete.
+- Endpoint por defecto: `POST /tenant-integrations/lookup` (middleware `api`).
+- Puedes deshabilitar u overrides en `config/lookup.php`:
+
+```php
+'routes' => [
+	'enabled' => true,          // pon false para deshabilitar
+	'path' => '/tenant-integrations/lookup',
+	'prefix' => null,
+	'middleware' => ['api'],
+],
+```
+
+Ejemplo de request (POST JSON):
+```json
+{
+  "integration_id": 123,
+  "entity": "seller",
+  "params": { "limit": 1 }
+}
+```
+Ejemplo de respuesta:
+```json
+{
+  "data": { /* DTO de dominio mapeado */ }
+}
+```
+
+Nota: Debes implementar y bindear `IntegrationContextResolver` para traducir `integration_id` a `IntegrationContext`.
 
 ### Puntos de extensión
 
