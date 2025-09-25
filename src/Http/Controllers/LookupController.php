@@ -14,7 +14,9 @@ final class LookupController
 
 	public function __invoke(Request $request): JsonResponse
 	{
-		$integrationIdInput = $request->input('integration_id');
+		$idParamRaw = config('lookup.context.id_param', 'integration_id');
+		$idParam = (is_string($idParamRaw) && $idParamRaw !== '') ? $idParamRaw : 'integration_id';
+		$integrationIdInput = $request->input($idParam);
 		$entityInput = $request->input('entity');
 		$paramsInput = $request->input('params', []);
 
@@ -24,7 +26,7 @@ final class LookupController
 		if (is_int($integrationIdInput) || is_string($integrationIdInput)) {
 			$integrationId = $integrationIdInput;
 		} else {
-			throw new \InvalidArgumentException('integration_id must be an int or string');
+			throw new \InvalidArgumentException($idParam . ' must be an int or string');
 		}
 
 		$dto = $this->service->lookupById($integrationId, $entity, $params);

@@ -40,6 +40,62 @@ Archivo `config/lookup.php`:
 - `PerformLookupAction`: invoca `provider->lookup(...)` y mapea con `mapper->map(...)`.
 - `LookupService`: resuelve contexto (si se usa `IntegrationContextResolver`) y devuelve el DTO de dominio.
 
+### Resolución de contexto (configurable)
+
+El paquete es agnóstico de tu modelo. Define cómo construir `IntegrationContext` desde el request:
+
+```php
+// config/lookup.php
+'context' => [
+	// Nombre del parámetro de entrada con el id
+	'id_param' => 'integration_id',
+
+	// (opcional) Clase que implementa IntegrationContextResolver
+	// 'resolver' => App\Resolvers\MyContextResolver::class,
+	'resolver' => null,
+
+	// (opcional) Resolver genérico basado en Eloquent
+	'eloquent' => [
+		// 'model' => App\\Models\\IntegrationTenant::class,
+		// 'channel_column' => 'channel_key',
+		// 'credentials_column' => 'credentials',
+	],
+],
+```
+
+Si usas el resolver genérico Eloquent con `IntegrationTenant`:
+
+```php
+// config/lookup.php
+'context' => [
+	'id_param' => 'integration_id',
+	'resolver' => null,
+	'eloquent' => [
+		'model' => App\Models\IntegrationTenant::class,
+		'channel_column' => 'channel_key',
+		'credentials_column' => 'credentials',
+	],
+],
+```
+
+Modelo sugerido:
+
+```php
+// app/Models/IntegrationTenant.php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class IntegrationTenant extends Model
+{
+	protected $casts = [
+		'credentials' => 'array',
+	];
+}
+```
+
+El controlador del paquete leerá el id desde `config('lookup.context.id_param')` (por defecto `integration_id`) y resolverá el contexto usando el `resolver` configurado o el resolver Eloquent si se define `context.eloquent.model`.
+
 ### HTTP (LookupController)
 
 - La ruta se habilita por defecto al instalar el paquete.
@@ -111,5 +167,86 @@ $dto = app(\Flowstore\Lookup\Services\LookupService::class)
 ```
 
 O vía HTTP con el `LookupController` opcional.
+
+### IntegrationContext (qué es y cómo personalizar)
+
+`IntegrationContext` es un DTO inmutable que describe el contexto de una integración:
+- `channelKey` (string): identifica el canal (p.ej. `shopify`, `mercadoLibre`).
+- `credentials` (array<string, mixed>): credenciales y datos necesarios para llamar al canal (token, apiKey, sellerId, etc.).
+
+Se utiliza en `LookupProviderInterface::testConnection(...)` y `lookup(...)`, y también en `EntityMapperInterface::map(...)` para proveer contexto al mapeo.
+
+Personalización:
+- Cambiar el parámetro de ID de entrada (nombre del campo en el request):
+```php
+// config/lookup.php
+'context' => [
+	'id_param' => 'tenant_id', // en vez de integration_id
+	'resolver' => null,
+	'eloquent' => [ /* ... opcional ... */ ],
+],
+```
+En este caso, el controlador leerá `tenant_id` en el body.
+
+- Proveer tu propio resolver (sin Eloquent genérico):
+```php
+// app/Resolvers/MyContextResolver.php
+namespace App\Resolvers;
+
+use App\Models\IntegrationTenant;
+use Flowstore\Lookup\Contracts\IntegrationContextResolver;
+use Flowstore\Lookup\DTO\IntegrationContext;
+
+final class MyContextResolver implements IntegrationContextResolver
+{
+	public function resolve($integrationId): IntegrationContext
+	{
+		$tenant = IntegrationTenant::findOrFail($integrationId);
+		return new IntegrationContext(
+			channelKey: (string) $tenant->channel_key,
+			credentials: (array) $tenant->credentials,
+		);
+	}
+}
+```
+Regístralo por configuración (no hace falta bind manual):
+```php
+// config/lookup.php
+'context' => [
+	'id_param' => 'integration_id',
+	'resolver' => App\Resolvers\MyContextResolver::class,
+],
+```
+
+- Resolver genérico con Eloquent (sin escribir una clase):
+```php
+// config/lookup.php
+'context' => [
+	'id_param' => 'integration_id',
+	'resolver' => null,
+	'eloquent' => [
+		'model' => App\Models\IntegrationTenant::class,
+		'channel_column' => 'channel_key',
+		'credentials_column' => 'credentials',
+	],****
+],
+```
+Sugerencia de modelo:
+```php
+class IntegrationTenant extends \Illuminate\Database\Eloquent\Model
+{
+	protected $casts = [
+		'credentials' => 'array',
+	];
+}
+```
+
+Ejemplo de request con `tenant_id`:
+```http
+POST /tenant-integrations/lookup
+Content-Type: application/json
+
+{ "tenant_id": 42, "entity": "seller", "params": { "limit": 1 } }
+```
 
 
