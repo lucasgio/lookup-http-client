@@ -42,6 +42,8 @@ return [
 		'enabled' => true,
 		// Default API route path for lookup POST endpoint
 		'path' => '/tenant-integrations/lookup',
+		// Default API route path for test-connection POST endpoint
+		'test_path' => '/tenant-integrations/test-connection',
 		'prefix' => null,
 		'middleware' => ['api'],
 	],

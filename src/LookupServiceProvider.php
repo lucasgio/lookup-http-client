@@ -5,6 +5,7 @@ namespace Flowstore\Lookup;
 use Flowstore\Lookup\Console\MakeLookupCommand;
 use Flowstore\Lookup\Contracts\IntegrationContextResolver;
 use Flowstore\Lookup\Http\Controllers\LookupController;
+use Flowstore\Lookup\Http\Controllers\TestConnectionController;
 use Flowstore\Lookup\Resolvers\ConfigModelContextResolver;
 use Flowstore\Lookup\Resolvers\EntityMapperResolver;
 use Flowstore\Lookup\Resolvers\LookupProviderResolver;
@@ -51,14 +52,16 @@ final class LookupServiceProvider extends ServiceProvider
 		$enabled = (bool) ($routes['enabled'] ?? false);
 		if ($enabled) {
 			$path = (string) ($routes['path'] ?? '/tenant-integrations/lookup');
+			$testPath = (string) ($routes['test_path'] ?? '/tenant-integrations/test-connection');
 			$prefix = $routes['prefix'] ?? null;
 			$middleware = $routes['middleware'] ?? ['api'];
 
 			Route::group([
 				'middleware' => is_array($middleware) ? $middleware : [$middleware],
 				'prefix' => is_string($prefix) ? $prefix : '',
-			], function () use ($path): void {
+			], function () use ($path, $testPath): void {
 				Route::post($path, LookupController::class);
+				Route::post($testPath, TestConnectionController::class);
 			});
 		}
 
