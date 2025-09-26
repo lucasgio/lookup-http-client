@@ -128,6 +128,32 @@ Ejemplo de respuesta:
 
 Nota: Debes implementar y bindear `IntegrationContextResolver` para traducir `integration_id` a `IntegrationContext`.
 
+### Test de conexión (TestConnectionController)
+
+- Endpoint por defecto: `POST /tenant-integrations/test-connection`
+- Body (JSON):
+```json
+{ "channel_key": "shopify", "integration_id": 123 }
+```
+- Respuesta:
+```json
+{ "success": true }
+```
+- Requiere un `IntegrationContextResolver` configurado (propio con `context.resolver` o genérico con `context.eloquent.model`).
+- Ajustes en `config/lookup.php`:
+```php
+'routes' => [
+	'enabled' => true,
+	'path' => '/tenant-integrations/lookup',
+	'test_path' => '/tenant-integrations/test-connection',
+	'prefix' => null,          // p.ej. 'api'
+	'middleware' => ['api'],
+],
+'context' => [
+	'id_param' => 'integration_id', // p.ej. 'tenant_id'
+],
+```
+
 ### Puntos de extensión
 
 - **Agregar un canal**: crear `App\\Lookup\\Providers\\{Canal}LookupProvider` y registrarlo en `config/lookup.php` (o seguir la convención).
