@@ -30,6 +30,7 @@ interface LookupProviderInterface
 	 * @return mixed Raw payload; the mapper is responsible for shaping it into a domain DTO
 	 */
 	public function lookup(IntegrationContext $context, string $entity, array $params = []);
+
 }
 
 

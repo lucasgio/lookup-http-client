@@ -249,4 +249,55 @@ Content-Type: application/json
 { "tenant_id": 42, "entity": "seller", "params": { "limit": 1 } }
 ```
 
+### Persistencia desde providers (helpers)
+
+Para facilitar inserciones/actualizaciones en tus modelos Eloquent desde un provider custom, `AbstractLookupProvider` expone métodos protegidos que usan `ModelWriter` internamente:
+
+- `persistCreate(string $modelClass, array $attributes): Model`
+- `persistUpdateOrCreate(string $modelClass, array $where, array $attributes): Model`
+- `persistUpsert(string $modelClass, array $rows, array $uniqueBy, array $update): int`
+
+Ejemplos:
+
+```php
+use Flowstore\Lookup\DTO\IntegrationContext;
+use Flowstore\Lookup\Support\AbstractLookupProvider;
+
+final class ShopifyLookupProvider extends AbstractLookupProvider
+{
+    public function resources(): array { return ['product']; }
+    public function testConnection(IntegrationContext $context): void {}
+
+    public function lookup(IntegrationContext $context, string $entity, array $params = [])
+    {
+        // ... obtén $payload remoto y mapea los campos de tu modelo
+
+        // Crear o actualizar un registro único por external_id
+        $product = $this->persistUpdateOrCreate(
+            \App\Models\Product::class,
+            ['external_id' => $payload['id']],
+            [
+                'name' => $payload['title'],
+                'price' => $payload['price'],
+            ]
+        );
+
+        // Upsert masivo
+        $this->persistUpsert(
+            \App\Models\Product::class,
+            $rows /* [[ 'external_id' => '...', 'name' => '...' ], ...] */,
+            ['external_id'],
+            ['name','price']
+        );
+
+        return $product; // o devuelve el payload para que lo mapee el mapper
+    }
+}
+```
+
+Notas:
+- `modelClass` es el FQCN del modelo (`App\Models\...`).
+- Asegúrate de que tu modelo tenga fillable/casts adecuados para los `attributes`.
+- `persistUpsert` sigue la firma de `Eloquent\Builder::upsert($rows, $uniqueBy, $update)`.
+
 

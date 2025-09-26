@@ -7,8 +7,9 @@ namespace Flowstore\Lookup\Support;
 use Flowstore\Lookup\Contracts\LookupProviderInterface;
 use Flowstore\Lookup\DTO\IntegrationContext;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Database\Eloquent\Model;
 
 abstract class AbstractLookupProvider implements LookupProviderInterface
 {
@@ -26,6 +27,37 @@ abstract class AbstractLookupProvider implements LookupProviderInterface
 
 		return Http::timeout($timeout)
 			->retry($retryTimes, $retrySleep);
+	}
+
+	/**
+	 * Persist helpers for providers
+	 * @param class-string<Model> $modelClass
+	 * @param array<string, mixed> $attributes
+	 */
+	protected function persistCreate(string $modelClass, array $attributes): Model
+	{
+		return (new ModelWriter())->create($modelClass, $attributes);
+	}
+
+	/**
+	 * @param class-string<Model> $modelClass
+	 * @param array<string, mixed> $where
+	 * @param array<string, mixed> $attributes
+	 */
+	protected function persistUpdateOrCreate(string $modelClass, array $where, array $attributes): Model
+	{
+		return (new ModelWriter())->updateOrCreate($modelClass, $where, $attributes);
+	}
+
+	/**
+	 * @param class-string<Model> $modelClass
+	 * @param array<int, array<string, mixed>> $rows
+	 * @param array<int, string> $uniqueBy
+	 * @param array<int, string> $update
+	 */
+	protected function persistUpsert(string $modelClass, array $rows, array $uniqueBy, array $update): int
+	{
+		return (new ModelWriter())->upsert($modelClass, $rows, $uniqueBy, $update);
 	}
 }
 
